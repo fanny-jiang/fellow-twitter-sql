@@ -6,25 +6,31 @@ const client = require('../db')
 
 module.exports = io => {
 
+  // router.get('/', (req, res, next) => {
+  //   client.query('SELECT * FROM tweets', function (err, result) {
+  //   if (err) return next(err); // pass errors to Express
+  //   var tweets = result.rows;
+  //   res.render('index', { title: 'Twitter.js', tweets: tweets, showForm: true });
+  //   });
+  // })
+
+  const baseQuery = 'SELECT tweets.id AS tweet_id, * FROM tweets INNER JOIN users ON users.id = tweets.user_id\n';
+
   // a reusable function
   const respondWithAllTweets = (req, res, next) => {
-    const allTheTweets = tweetBank.list();
-    res.render('index', {
-      title: 'Twitter.js',
-      tweets: allTheTweets,
-      showForm: true
+    client.query(baseQuery, function (err, result) {
+      if (err) return next(err); // pass errors to Express
+      var tweets = result.rows;
+      res.render('index', {
+        title: 'Twitter.js',
+        tweets: tweets,
+        showForm: true
+      });
     });
   }
 
   // here we basically treet the root view and tweets view as identical
-  router.get('/', (req, res, next) => {
-    client.query('SELECT tweets.id AS tweet_id, * FROM tweets INNER JOIN users ON users.id = tweets.user_id\n', function (err, result) {
-      if (err) return next(err); // pass errors to Express
-      var tweets = result.rows;
-      res.render('index', { title: 'Twitter.js', tweets: tweets, showForm: true });
-    });
-  })
-  // router.get('/', respondWithAllTweets);
+  router.get('/', respondWithAllTweets);
   router.get('/tweets', respondWithAllTweets);
 
   // single-user page
