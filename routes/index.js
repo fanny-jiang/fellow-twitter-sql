@@ -1,7 +1,8 @@
 'use strict';
 const express = require('express');
 const router = express.Router();
-const tweetBank = require('../tweetBank');
+// const tweetBank = require('../tweetBank');
+const client = require('../db')
 
 module.exports = io => {
 
@@ -16,7 +17,14 @@ module.exports = io => {
   }
 
   // here we basically treet the root view and tweets view as identical
-  router.get('/', respondWithAllTweets);
+  router.get('/', (req, res, next) => {
+    client.query('SELECT tweets.id AS tweet_id, * FROM tweets INNER JOIN users ON users.id = tweets.user_id\n', function (err, result) {
+      if (err) return next(err); // pass errors to Express
+      var tweets = result.rows;
+      res.render('index', { title: 'Twitter.js', tweets: tweets, showForm: true });
+    });
+  })
+  // router.get('/', respondWithAllTweets);
   router.get('/tweets', respondWithAllTweets);
 
   // single-user page
